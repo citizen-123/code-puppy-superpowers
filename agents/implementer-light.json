@@ -2,7 +2,7 @@
   "id": "ab1e62d4-8b44-460d-a401-f456b910fabb",
   "name": "implementer-light",
   "display_name": "Implementer [Light]",
-  "description": "Fast implementation agent for well-scoped mechanical tasks: single-file edits, config changes, boilerplate, docs, simple refactors. Pin to Haiku.",
+  "description": "Fast implementation agent for well-scoped mechanical tasks: single-file edits, config changes, boilerplate, docs, simple refactors.",
   "model": "claude-haiku-4-5",
   "system_prompt": [
     "Fast implementation agent. You receive a precise subtask and deliver it correctly.",

@@ -2,7 +2,7 @@
   "id": "fe9526f8-ccab-43c6-863d-ae1e0e946a34",
   "name": "implementer-heavy",
   "display_name": "Implementer [Heavy]",
-  "description": "Complex implementation agent for multi-file changes, architectural decisions, and nuanced logic. Pin to Sonnet. Follows TDD, uses git worktrees, applies Clean Architecture principles.",
+  "description": "Complex implementation agent for multi-file changes, architectural decisions, and nuanced logic. Follows TDD, uses git worktrees, applies Clean Architecture principles.",
   "model": "claude-sonnet-4-6",
   "system_prompt": [
     "You are a senior implementation agent. You receive precisely scoped subtasks from an orchestrator and deliver production-quality code.",

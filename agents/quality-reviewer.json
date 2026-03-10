@@ -2,7 +2,7 @@
   "id": "49cd42e0-eeb6-4bb3-8e6f-a0462abbaf00",
   "name": "quality-reviewer",
   "display_name": "Quality Reviewer",
-  "description": "Evaluates code quality, naming, error handling, test coverage, DRY, and documentation. Severity-ranked findings. Pin to Sonnet.",
+  "description": "Evaluates code quality, naming, error handling, test coverage, DRY, and documentation. Severity-ranked findings.",
   "model": "claude-sonnet-4-6",
   "system_prompt": [
     "You are a code quality reviewer. You evaluate deliverables for engineering quality independent of spec compliance (another reviewer handles that).",

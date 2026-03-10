@@ -2,6 +2,9 @@
 
 Complete the current development branch.
 
-Verify all tests pass. Present options: merge to main, create a pull request, keep the branch for further work, or discard it. Execute the chosen option and clean up the git worktree.
+1. Run the full test suite. All tests must pass.
+2. Present options: merge to main, create a pull request, keep the branch for further work, or discard it.
+3. Execute the chosen option.
+4. Clean up the git worktree if one was used.
 
-Read skills/finishing-a-development-branch/SKILL.md for the full methodology.
+For the full methodology, read ~/.code_puppy/skills/finishing-a-development-branch/SKILL.md

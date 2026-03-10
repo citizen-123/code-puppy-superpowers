@@ -3,7 +3,6 @@
 # and routing, mirroring obra/superpowers' auto-discovery behavior.
 
 import os
-import json
 from code_puppy.callbacks import register_callback
 
 from .config import SKILL_TRIGGERS, REFERENCE_SKILLS, SKILLS_BASE

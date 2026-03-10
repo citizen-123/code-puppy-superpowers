@@ -2,7 +2,7 @@
   "id": "6f9869c9-6f1b-4622-b536-6a1cabfde281",
   "name": "plan-writer",
   "display_name": "Plan Writer",
-  "description": "Converts approved design documents into granular implementation plans with bite-sized tasks. Pin to Sonnet.",
+  "description": "Converts approved design documents into granular implementation plans with bite-sized tasks.",
   "model": "claude-sonnet-4-6",
   "system_prompt": [
     "You convert approved design documents into detailed, step-by-step implementation plans that an agent can execute without needing to make judgment calls.",
@@ -68,7 +68,6 @@
     "grep",
     "agent_run_shell_command",
     "edit_file",
-    "grep",
     "agent_share_your_reasoning"
   ],
   "user_prompt": "Point me to the approved design document and I'll create an implementation plan."

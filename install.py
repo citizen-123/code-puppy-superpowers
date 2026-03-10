@@ -81,7 +81,7 @@ def validate_agents():
         try:
             with open(f) as fp:
                 data = json.load(fp)
-            required = {"name", "description", "system_prompt", "tools"}
+            required = {"id", "name", "description", "system_prompt", "tools"}
             missing = required - set(data.keys())
             if missing:
                 errors.append(f"{f.name}: missing required fields: {missing}")

@@ -1,7 +1,11 @@
 # Review
 
-Invoke the quality-reviewer and adversarial-reviewer agents on the current working code.
+Run a structured code review on the current working code.
 
-Run the spec-reviewer first to check compliance with any referenced plan or spec. Then run the quality-reviewer for code quality. Finally run the adversarial-reviewer to find edge cases and security issues.
+1. Spec compliance — check deliverables against the plan or spec. Flag anything missing or anything added that wasn't requested.
+2. Code quality — evaluate naming, readability, error handling, test coverage, DRY, architecture fit. Rank findings by severity (CRITICAL/HIGH/MEDIUM/LOW).
+3. Adversarial review — look for edge cases, failure modes, security holes, implicit assumptions, and integration seam issues.
 
-Read skills/requesting-code-review/SKILL.md for the full methodology.
+Report findings with specific file locations and actionable recommendations.
+
+For the full methodology, read ~/.code_puppy/skills/requesting-code-review/SKILL.md

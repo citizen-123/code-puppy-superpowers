@@ -1,7 +1,11 @@
 # Brainstorm
 
-Switch to the brainstormer agent and begin collaborative design refinement.
+Begin collaborative design refinement before writing any code.
 
-Explore the project context, then ask clarifying questions one at a time to understand what we're building. Propose 2-3 approaches with trade-offs before settling on a design. Present the design in sections for approval. Save the approved design to docs/plans/.
+1. Explore the project context — read project files, docs, recent commits.
+2. Ask clarifying questions one at a time to understand what we're building.
+3. Propose 2-3 approaches with trade-offs and a recommendation.
+4. Present the design in sections for approval.
+5. Save the approved design to docs/plans/YYYY-MM-DD-<topic>-design.md and commit.
 
-Read skills/brainstorming/SKILL.md for the full methodology.
+For the full methodology, read ~/.code_puppy/skills/brainstorming/SKILL.md

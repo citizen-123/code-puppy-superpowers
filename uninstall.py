@@ -43,6 +43,20 @@ COMMAND_FILES = [
     "finish-branch.md",
 ]
 
+# Skill subdirectories we installed (inside ~/.code_puppy/skills/).
+SKILL_SUBDIRS = [
+    "brainstorming",
+    "writing-plans",
+    "test-driven-development",
+    "using-git-worktrees",
+    "finishing-a-development-branch",
+    "subagent-driven-development",
+    "systematic-debugging",
+    "requesting-code-review",
+    "receiving-code-review",
+    "dispatching-parallel-agents",
+]
+
 
 def find_agent_files():
     """Find agent JSON files that match our agent names."""
@@ -69,6 +83,16 @@ def find_command_files():
     return found
 
 
+def find_skill_dirs():
+    """Find skill subdirectories we installed."""
+    found = []
+    for name in SKILL_SUBDIRS:
+        path = SKILLS_DIR / name
+        if path.is_dir():
+            found.append(path)
+    return found
+
+
 def main():
     print("\n  code-puppy-superpowers uninstaller")
     print("  " + "=" * 40)
@@ -76,11 +100,11 @@ def main():
     # Collect what we'd remove
     agent_files = find_agent_files()
     command_files = find_command_files()
-    has_skills = SKILLS_DIR.is_dir()
+    skill_dirs = find_skill_dirs()
     has_plugin = PLUGINS_DIR.is_dir()
     has_symlink = COMMANDS_SYMLINK.is_symlink()
 
-    if not agent_files and not command_files and not has_skills and not has_plugin:
+    if not agent_files and not command_files and not skill_dirs and not has_plugin:
         print("\n  Nothing to uninstall. Superpowers doesn't appear to be installed.")
         sys.exit(0)
 
@@ -96,9 +120,10 @@ def main():
         for f in command_files:
             print(f"    {f}")
 
-    if has_skills:
-        skill_count = sum(1 for _ in SKILLS_DIR.iterdir() if _.is_dir())
-        print(f"  Skills ({skill_count}): {SKILLS_DIR}")
+    if skill_dirs:
+        print(f"  Skills ({len(skill_dirs)}):")
+        for d in skill_dirs:
+            print(f"    {d}")
 
     if has_plugin:
         print(f"  Plugin: {PLUGINS_DIR}")
@@ -124,8 +149,8 @@ def main():
         f.unlink()
         removed += 1
 
-    if has_skills:
-        shutil.rmtree(SKILLS_DIR)
+    for d in skill_dirs:
+        shutil.rmtree(d)
         removed += 1
 
     if has_plugin:
