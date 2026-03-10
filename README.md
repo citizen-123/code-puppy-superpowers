@@ -1,130 +1,136 @@
-# Mastermind Agent Constellation
+# code-puppy-superpowers
 
-Multi-agent orchestration system for Code Puppy. The Mastermind decomposes tasks, dispatches specialized sub-agents, and drives iterative review until quality gates pass.
+A port of [obra/superpowers](https://github.com/obra/superpowers) for [Code Puppy](https://github.com/mpfaffenberger/code_puppy). The same structured software development workflow — brainstorm, plan, execute with sub-agents, review, finish — adapted to Code Puppy's JSON agents, `invoke_agent` tool, custom commands, and plugin callback system.
+
+## How It Works
+
+Superpowers is a development methodology: brainstorm a design before coding, break it into a plan, execute with fresh sub-agents per task, review everything twice (spec compliance then code quality), and finish the branch cleanly. This repo packages that methodology for Code Puppy.
+
+```mermaid
+flowchart LR
+    B["/brainstorm"] --> W["/write-plan"] --> E["/execute-plan"] --> R["/review"] --> F["/finish-branch"]
+```
+
+Each step maps to a dedicated Code Puppy agent that can be triggered three ways: slash commands for direct access, automatic detection via plugin hooks, or orchestrated dispatch via the mastermind agent.
 
 ## Architecture
 
 ```mermaid
 graph TD
-    M["<b>MASTERMIND</b><br/><i>Opus</i><br/>Orchestrator"]
-
-    subgraph impl ["Implementation Tier"]
-        IH["<b>implementer-heavy</b><br/><i>Sonnet</i><br/>Complex tasks · TDD · Worktrees"]
-        IL["<b>implementer-light</b><br/><i>Haiku</i><br/>Mechanical tasks · Fast & cheap"]
+    subgraph triggers ["Trigger Layer"]
+        CMD["Slash Commands<br/><i>/brainstorm, /write-plan, /debug...</i>"]
+        PLUGIN["Plugin Hooks<br/><i>before_message auto-detection</i>"]
+        MAST["Mastermind<br/><i>orchestrated dispatch</i>"]
     end
 
-    subgraph rev ["Review Tier"]
-        SR["<b>spec-reviewer</b><br/><i>Sonnet</i><br/>Spec compliance"]
-        QR["<b>quality-reviewer</b><br/><i>Sonnet</i><br/>Code quality"]
-        AR["<b>adversarial-reviewer</b><br/><i>Opus</i><br/>Break everything"]
+    subgraph agents ["Agent Layer"]
+        BS["brainstormer<br/><i>Opus</i>"]
+        PW["plan-writer<br/><i>Sonnet</i>"]
+        IH["implementer-heavy<br/><i>Sonnet</i>"]
+        IL["implementer-light<br/><i>Haiku</i>"]
+        DBG["debugger<br/><i>Sonnet</i>"]
     end
 
-    M -- "invoke_agents" --> IH
-    M -- "invoke_agents" --> IL
-    M -- "invoke_agents" --> SR
-    M -- "invoke_agents" --> QR
-    M -- "invoke_agents" --> AR
+    subgraph reviewers ["Review Layer"]
+        SR["spec-reviewer<br/><i>Sonnet</i>"]
+        QR["quality-reviewer<br/><i>Sonnet</i>"]
+        AR["adversarial-reviewer<br/><i>Opus</i>"]
+    end
 
-    IH -. "deliverable" .-> SR
-    IL -. "deliverable" .-> SR
-    SR -. "if compliant" .-> QR
-    QR -. "all subtasks approved" .-> AR
+    subgraph refs ["Skill References"]
+        SK["skills/*.md<br/><i>read_file at runtime</i>"]
+    end
 
-    style M fill:#6e44ff,stroke:#4a2db5,color:#fff
+    CMD --> BS & PW & DBG & MAST
+    PLUGIN --> BS & PW & DBG
+    MAST --> IH & IL & SR & QR & AR
+    BS & PW & IH & IL & DBG -.-> SK
+
+    style triggers fill:transparent,stroke:#a78bfa
+    style agents fill:transparent,stroke:#93c5fd
+    style reviewers fill:transparent,stroke:#fca5a5
+    style refs fill:transparent,stroke:#86efac
+    style BS fill:#6e44ff,stroke:#4a2db5,color:#fff
+    style PW fill:#3b82f6,stroke:#2563eb,color:#fff
     style IH fill:#3b82f6,stroke:#2563eb,color:#fff
     style IL fill:#22c55e,stroke:#16a34a,color:#fff
+    style DBG fill:#3b82f6,stroke:#2563eb,color:#fff
     style SR fill:#f59e0b,stroke:#d97706,color:#fff
     style QR fill:#f59e0b,stroke:#d97706,color:#fff
     style AR fill:#ef4444,stroke:#dc2626,color:#fff
-    style impl fill:transparent,stroke:#93c5fd
-    style rev fill:transparent,stroke:#fcd34d
+    style MAST fill:#6e44ff,stroke:#4a2db5,color:#fff
 ```
 
-## Workflow
+## Full Workflow
 
 ```mermaid
 flowchart TD
-    START(["User provides task"]) --> WORKTREE
+    START(["User has an idea"]) --> BRAIN
 
-    subgraph phase0 ["Phase 0: Worktree Setup"]
-        WORKTREE["Create git worktree<br/><i>isolated branch + workspace</i>"] --> DEPS["Install deps, verify build"]
-        DEPS --> BASELINE["Run tests — establish baseline"]
+    subgraph design ["Design Phase"]
+        BRAIN["brainstormer<br/>explores context, asks questions,<br/>proposes approaches, writes design doc"]
     end
 
-    BASELINE --> PLAN
-    PLAN["<b>Phase 1: Decomposition</b><br/>Mastermind produces plan"] --> APPROVE{User approves?}
-    APPROVE -- "No" --> PLAN
-    APPROVE -- "Yes" --> DISPATCH
+    BRAIN --> PLAN
 
-    subgraph phase2 ["Phase 2: Implementation Loop"]
-        DISPATCH["Dispatch implementer<br/><i>heavy or light</i><br/>with worktree_path"] --> IMPL["Agent implements subtask"]
-        IMPL --> SPEC{"spec-reviewer<br/>COMPLIANT?"}
-        SPEC -- "No" --> REVISE_SPEC["Implementer fixes<br/>spec gaps"]
-        REVISE_SPEC --> SPEC
-        SPEC -- "Yes" --> QUAL{"quality-reviewer<br/>CRITICAL/HIGH?"}
-        QUAL -- "Yes" --> REVISE_QUAL["Implementer fixes<br/>quality issues"]
-        REVISE_QUAL --> QUAL
-        QUAL -- "No" --> DONE_SUB["Subtask approved"]
+    subgraph planning ["Planning Phase"]
+        PLAN["plan-writer<br/>decomposes design into<br/>2-5 min tasks with TDD"]
     end
 
-    DONE_SUB --> MORE{More subtasks?}
-    MORE -- "Yes" --> DISPATCH
-    MORE -- "No" --> INTEGRATION
+    PLAN --> WORKTREE
 
-    subgraph phase3 ["Phase 3: Integration Review"]
-        INTEGRATION["<b>adversarial-reviewer</b><br/>attacks full implementation"] --> PASS{CRITICAL/HIGH<br/>findings?}
-        PASS -- "Yes" --> FIX["Route to implementer<br/>for remediation"]
-        FIX --> INTEGRATION
-        PASS -- "No" --> FINISH
+    subgraph execution ["Execution Phase"]
+        WORKTREE["mastermind creates<br/>git worktree"] --> DISPATCH
+        DISPATCH["dispatch implementer<br/>per task"] --> SPECR{"spec-reviewer<br/>COMPLIANT?"}
+        SPECR -- "No" --> FIX1["implementer fixes"] --> SPECR
+        SPECR -- "Yes" --> QUALR{"quality-reviewer<br/>CRITICAL/HIGH?"}
+        QUALR -- "Yes" --> FIX2["implementer fixes"] --> QUALR
+        QUALR -- "No" --> DONE["task approved"]
+        DONE --> MORE{more tasks?}
+        MORE -- "Yes" --> DISPATCH
+        MORE -- "No" --> ADV
     end
 
-    subgraph phase4 ["Phase 4: Finish Branch"]
-        FINISH["Verify all tests pass"] --> CHOICE{User chooses}
-        CHOICE -- "Merge" --> MERGE["Merge to main"]
-        CHOICE -- "PR" --> PR["Create pull request"]
-        CHOICE -- "Keep" --> KEEP["Keep branch"]
-        CHOICE -- "Discard" --> DISCARD["Discard branch"]
+    subgraph integration ["Integration Review"]
+        ADV["adversarial-reviewer<br/>attacks full implementation"]
     end
 
-    MERGE --> CLEANUP
-    PR --> CLEANUP
-    KEEP --> DONE
-    DISCARD --> CLEANUP
-    CLEANUP["Remove worktree"] --> DONE(["Complete"])
+    ADV --> FINISH
+
+    subgraph completion ["Completion"]
+        FINISH["finish branch<br/>merge / PR / keep / discard"]
+    end
+
+    FINISH --> END(["Done"])
 
     style START fill:#6e44ff,stroke:#4a2db5,color:#fff
-    style DONE fill:#22c55e,stroke:#16a34a,color:#fff
-    style phase0 fill:transparent,stroke:#a78bfa
-    style phase2 fill:transparent,stroke:#93c5fd
-    style phase3 fill:transparent,stroke:#fca5a5
-    style phase4 fill:transparent,stroke:#86efac
+    style END fill:#22c55e,stroke:#16a34a,color:#fff
+    style design fill:transparent,stroke:#a78bfa
+    style planning fill:transparent,stroke:#93c5fd
+    style execution fill:transparent,stroke:#93c5fd
+    style integration fill:transparent,stroke:#fca5a5
+    style completion fill:transparent,stroke:#86efac
 ```
 
-## Agents
-
-| Agent | Model | Role |
-|---|---|---|
-| `mastermind` | Opus | Decomposes tasks, dispatches agents, reviews, synthesizes |
-| `implementer-heavy` | Sonnet | Complex implementation: multi-file, architecture, TDD |
-| `implementer-light` | Haiku | Mechanical tasks: config, boilerplate, simple edits |
-| `spec-reviewer` | Sonnet | Binary spec compliance: COMPLIANT / NON_COMPLIANT |
-| `quality-reviewer` | Sonnet | Code quality with severity-ranked findings |
-| `adversarial-reviewer` | Opus | Tries to break everything. The paranoid one. |
-
-## Setup
-
-### 1. Copy agents into place
+## Installation
 
 ```bash
-cp agents/*.json ~/.code_puppy/agents/
+git clone https://github.com/citizen-123/code-puppy-agents.git
+cd code-puppy-agents
+python install.py
 ```
 
-### 2. Pin models
+The install script copies agents, commands, skills, and the plugin into your Code Puppy environment.
 
-In Code Puppy, use `/pin_model` to assign each agent its model:
+### Pin Models
+
+After installing, assign models to each agent:
 
 ```
 /pin_model mastermind           → claude-opus-4-6
+/pin_model brainstormer         → claude-opus-4-6
+/pin_model plan-writer          → claude-sonnet-4-6
+/pin_model debugger             → claude-sonnet-4-6
 /pin_model implementer-heavy    → claude-sonnet-4-6
 /pin_model implementer-light    → claude-haiku-4-5
 /pin_model spec-reviewer        → claude-sonnet-4-6
@@ -132,59 +138,128 @@ In Code Puppy, use `/pin_model` to assign each agent its model:
 /pin_model adversarial-reviewer → claude-opus-4-6
 ```
 
-### 3. Switch to mastermind
+## Usage
+
+### Slash Commands
+
+| Command | What It Does |
+|---|---|
+| `/brainstorm` | Start collaborative design — explore, question, propose, validate |
+| `/write-plan` | Turn an approved design into an implementation plan |
+| `/execute-plan` | Execute a plan with sub-agents and two-stage review |
+| `/debug` | Systematic hypothesis-driven debugging |
+| `/review` | Run spec + quality + adversarial review on current code |
+| `/finish-branch` | Complete the branch — merge, PR, keep, or discard |
+
+### Agent Switching
 
 ```
-/agent mastermind
+/agent brainstormer          # Design mode
+/agent plan-writer           # Planning mode
+/agent mastermind            # Full orchestration
+/agent debugger              # Debugging mode
 ```
 
-### 4. Activate skills
+### Automatic Detection (Plugin)
 
-The agents reference these skills — install them if you haven't:
+The plugin's `before_message` hook detects intent patterns and suggests the appropriate agent:
 
-```bash
-# obra/superpowers (TDD, worktrees, SDD, finishing branches)
-# Install via your preferred method — plugin marketplace or manual
+| You Say | Agent Triggered |
+|---|---|
+| "Let's build a..." | brainstormer |
+| "This is broken..." | debugger |
+| "Write a plan for..." | plan-writer |
 
-# NeoLabHQ/context-engineering-kit (DDD, SADD)
-/plugin install ddd@NeoLabHQ/context-engineering-kit
-/plugin install sadd@NeoLabHQ/context-engineering-kit
+## Agents
+
+| Agent | Model | Role |
+|---|---|---|
+| `mastermind` | Opus | Orchestrates the full workflow — worktree, dispatch, review loops |
+| `brainstormer` | Opus | Collaborative design refinement through structured dialogue |
+| `plan-writer` | Sonnet | Converts designs into granular, executable implementation plans |
+| `debugger` | Sonnet | Systematic hypothesis-driven debugging |
+| `implementer-heavy` | Sonnet | Complex implementation — multi-file, architecture, TDD |
+| `implementer-light` | Haiku | Mechanical tasks — config, boilerplate, simple edits |
+| `spec-reviewer` | Sonnet | Binary spec compliance: COMPLIANT / NON_COMPLIANT |
+| `quality-reviewer` | Sonnet | Code quality with severity-ranked findings |
+| `adversarial-reviewer` | Opus | Tries to break everything |
+
+## Skills (Runtime References)
+
+Agents read these via `read_file` when they need the full methodology:
+
+| Skill | Purpose |
+|---|---|
+| `brainstorming` | Design exploration process |
+| `writing-plans` | Plan decomposition methodology |
+| `test-driven-development` | RED-GREEN-REFACTOR discipline |
+| `using-git-worktrees` | Isolated workspace setup |
+| `finishing-a-development-branch` | Branch completion workflow |
+| `subagent-driven-development` | The core execution pattern |
+| `systematic-debugging` | Hypothesis-driven debugging |
+| `requesting-code-review` | Two-stage review structure |
+| `receiving-code-review` | How to handle review feedback |
+| `dispatching-parallel-agents` | Parallel execution rules |
+
+## Project Structure
+
+```
+code-puppy-agents/
+├── install.py                # Install script
+├── plugin/                   # Code Puppy plugin (callbacks)
+│   ├── __init__.py          #   on_startup + before_message hooks
+│   └── config.py            #   trigger patterns and skill registry
+├── agents/                   # JSON agents → ~/.code_puppy/agents/
+│   ├── mastermind.json      #   orchestrator (Opus)
+│   ├── brainstormer.json    #   design refinement (Opus)
+│   ├── plan-writer.json     #   plan creation (Sonnet)
+│   ├── debugger.json        #   systematic debugging (Sonnet)
+│   ├── implementer-heavy.json  # complex tasks (Sonnet)
+│   ├── implementer-light.json  # mechanical tasks (Haiku)
+│   ├── spec-reviewer.json      # spec compliance (Sonnet)
+│   ├── quality-reviewer.json   # code quality (Sonnet)
+│   └── adversarial-reviewer.json # break everything (Opus)
+├── commands/                 # Slash commands → .claude/commands/
+│   ├── brainstorm.md
+│   ├── write-plan.md
+│   ├── execute-plan.md
+│   ├── debug.md
+│   ├── review.md
+│   └── finish-branch.md
+└── skills/                   # Reference docs → ~/.code_puppy/superpowers/skills/
+    ├── brainstorming/
+    ├── writing-plans/
+    ├── test-driven-development/
+    ├── using-git-worktrees/
+    ├── finishing-a-development-branch/
+    ├── subagent-driven-development/
+    ├── systematic-debugging/
+    ├── requesting-code-review/
+    ├── receiving-code-review/
+    └── dispatching-parallel-agents/
 ```
 
-## Workflow
+## Superpowers → Code Puppy Translation
 
-**Phase 0 — Worktree Setup**: Mastermind creates an isolated git worktree on a new branch before any work begins. Installs dependencies, verifies build, runs tests to establish a clean baseline. All subsequent work by every agent happens inside this worktree.
+| Superpowers Mechanism | Code Puppy Equivalent |
+|---|---|
+| SKILL.md auto-discovery | `on_startup` callback registers skills |
+| `/superpowers:brainstorm` | `/brainstorm` command (markdown) |
+| Session start hook | `on_startup` callback |
+| Context-based skill triggers | `before_message` callback pattern matching |
+| Subagent dispatch via `Task` tool | `invoke_agent` tool |
+| SKILL.md progressive loading | `read_file` by agents at runtime |
+| Plugin marketplace install | `python install.py` |
 
-**Phase 1 — Decomposition**: Mastermind analyzes your task, produces an implementation plan with subtasks, agent assignments, dependencies, and execution order. Presents for approval.
+## Golden Rules
 
-**Phase 2 — Implementation**: For each subtask, Mastermind dispatches the assigned implementer with the worktree path, then runs spec-reviewer → quality-reviewer in sequence. Revisions loop up to 3 times before escalating.
+All agents enforce these principles:
 
-**Phase 3 — Integration Review**: After all subtasks pass, adversarial-reviewer attacks the full implementation. CRITICAL/HIGH findings trigger targeted fixes and re-review.
+- **DRY** — Single source of truth for every piece of logic
+- **KISS** — Simple over clever, readable over compact
+- **YAGNI** — Build what's needed now, not what might be needed later
+- **SOLID** — Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion
 
-**Phase 4 — Finish Branch**: Verify all tests pass, then present options: merge to main, create PR, keep branch, or discard. Clean up the worktree after.
+## Credits
 
-## Agent Selection Heuristic
-
-The Mastermind picks agents based on subtask characteristics:
-
-**implementer-heavy** (Sonnet) when:
-- Multi-file changes
-- New modules, classes, or architectural components
-- Algorithmic complexity or nuanced logic
-- Integration work across subsystems
-- Decisions requiring judgment
-
-**implementer-light** (Haiku) when:
-- Single-file edits with clear instructions
-- Config/env changes
-- Boilerplate generation
-- Renaming/moving
-- Documentation updates
-- Mechanical refactors (pattern already established)
-
-## Cost Optimization Notes
-
-- Haiku is ~60x cheaper than Opus per token. Route aggressively to `implementer-light` for mechanical work.
-- Spec-reviewer and quality-reviewer on Sonnet are a deliberate tradeoff: they need enough capability to catch real issues but run on every subtask, so cost matters.
-- Adversarial-reviewer on Opus is justified: it runs once at integration time and needs deep reasoning to find subtle bugs.
-- If revision loops are firing frequently on Haiku tasks, the subtask scoping is probably too loose. Tighten the spec rather than upgrading the model.
+Based on [obra/superpowers](https://github.com/obra/superpowers) by Jesse Vincent. Adapted for [Code Puppy](https://github.com/mpfaffenberger/code_puppy).
