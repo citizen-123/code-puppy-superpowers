@@ -4,27 +4,79 @@ Multi-agent orchestration system for Code Puppy. The Mastermind decomposes tasks
 
 ## Architecture
 
+```mermaid
+graph TD
+    M["<b>MASTERMIND</b><br/><i>Opus</i><br/>Orchestrator"]
+
+    subgraph impl ["Implementation Tier"]
+        IH["<b>implementer-heavy</b><br/><i>Sonnet</i><br/>Complex tasks · TDD · Worktrees"]
+        IL["<b>implementer-light</b><br/><i>Haiku</i><br/>Mechanical tasks · Fast & cheap"]
+    end
+
+    subgraph rev ["Review Tier"]
+        SR["<b>spec-reviewer</b><br/><i>Sonnet</i><br/>Spec compliance"]
+        QR["<b>quality-reviewer</b><br/><i>Sonnet</i><br/>Code quality"]
+        AR["<b>adversarial-reviewer</b><br/><i>Opus</i><br/>Break everything"]
+    end
+
+    M -- "invoke_agents" --> IH
+    M -- "invoke_agents" --> IL
+    M -- "invoke_agents" --> SR
+    M -- "invoke_agents" --> QR
+    M -- "invoke_agents" --> AR
+
+    IH -. "deliverable" .-> SR
+    IL -. "deliverable" .-> SR
+    SR -. "if compliant" .-> QR
+    QR -. "all subtasks approved" .-> AR
+
+    style M fill:#6e44ff,stroke:#4a2db5,color:#fff
+    style IH fill:#3b82f6,stroke:#2563eb,color:#fff
+    style IL fill:#22c55e,stroke:#16a34a,color:#fff
+    style SR fill:#f59e0b,stroke:#d97706,color:#fff
+    style QR fill:#f59e0b,stroke:#d97706,color:#fff
+    style AR fill:#ef4444,stroke:#dc2626,color:#fff
+    style impl fill:#f0f4ff,stroke:#93c5fd
+    style rev fill:#fef9ee,stroke:#fcd34d
 ```
-                         ┌─────────────────┐
-                         │   MASTERMIND     │
-                         │   (Opus)         │
-                         │   Orchestrator   │
-                         └────────┬────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              │                   │                    │
-    ┌─────────▼────────┐ ┌───────▼────────┐ ┌────────▼────────┐
-    │ implementer-heavy │ │implementer-light│ │   REVIEWERS     │
-    │ (Sonnet)          │ │ (Haiku)         │ │                 │
-    │ Complex tasks     │ │ Mechanical tasks│ │ spec-reviewer   │
-    │ TDD, worktrees    │ │ Fast & cheap    │ │ (Sonnet)        │
-    └──────────────────┘ └────────────────┘ │                 │
-                                             │ quality-reviewer│
-                                             │ (Sonnet)        │
-                                             │                 │
-                                             │ adversarial-    │
-                                             │ reviewer (Opus) │
-                                             └─────────────────┘
+
+## Workflow
+
+```mermaid
+flowchart TD
+    START(["User provides task"]) --> PLAN
+    PLAN["<b>Phase 1: Decomposition</b><br/>Mastermind produces plan"] --> APPROVE{User approves?}
+    APPROVE -- "No" --> PLAN
+    APPROVE -- "Yes" --> DISPATCH
+
+    subgraph phase2 ["Phase 2: Implementation Loop"]
+        DISPATCH["Dispatch implementer<br/><i>heavy or light</i>"] --> IMPL["Agent implements subtask"]
+        IMPL --> SPEC{"spec-reviewer<br/>COMPLIANT?"}
+        SPEC -- "No" --> REVISE_SPEC["Implementer fixes<br/>spec gaps"]
+        REVISE_SPEC --> SPEC
+        SPEC -- "Yes" --> QUAL{"quality-reviewer<br/>CRITICAL/HIGH?"}
+        QUAL -- "Yes" --> REVISE_QUAL["Implementer fixes<br/>quality issues"]
+        REVISE_QUAL --> QUAL
+        QUAL -- "No" --> DONE_SUB["Subtask approved"]
+    end
+
+    DONE_SUB --> MORE{More subtasks?}
+    MORE -- "Yes" --> DISPATCH
+    MORE -- "No" --> INTEGRATION
+
+    subgraph phase3 ["Phase 3: Integration Review"]
+        INTEGRATION["<b>adversarial-reviewer</b><br/>attacks full implementation"] --> PASS{CRITICAL/HIGH<br/>findings?}
+        PASS -- "Yes" --> FIX["Route to implementer<br/>for remediation"]
+        FIX --> INTEGRATION
+        PASS -- "No" --> DELIVER
+    end
+
+    DELIVER(["Deliver final output"])
+
+    style START fill:#6e44ff,stroke:#4a2db5,color:#fff
+    style DELIVER fill:#22c55e,stroke:#16a34a,color:#fff
+    style phase2 fill:#f0f4ff,stroke:#93c5fd
+    style phase3 fill:#fef2f2,stroke:#fca5a5
 ```
 
 ## Agents
